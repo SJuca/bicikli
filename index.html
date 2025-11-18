@@ -78,7 +78,8 @@
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        align-items: flex-end;
+        align-items: flex-start;
+        justify-content: flex-start;
     }
 
     /* Gombok – KÉK VERZIÓ elrendezés: oszlopban jobb oldalon */
@@ -161,18 +162,18 @@
 <!-- BAL PANEL -->
 <div id="leftPanel">
     <div id="code"></div>
-    <div id="timeline"></div>
+    <div id="timeline" style="position:absolute; left:20px; bottom:20px;"></div>
 </div>
 
 <!-- JOBB PANEL -->
 <div id="rightPanel">
-    <div class="task-buttons">
+    <div class="task-buttons" style="display:flex; flex-direction:column; gap:10px; position:absolute; right:20px; top:20px;">
         <button onclick="setTask(2)">2. feladat</button>
         <button onclick="setTask(3)">3. feladat</button>
         <button onclick="setTask(4)">4. feladat</button>
     </div>
 
-    <div class="nav-buttons">
+    <div class="nav-buttons" style="display:flex; flex-direction:column; gap:10px; position:absolute; right:20px; top:180px;">
         <button onclick="step(-1)">-1</button>
         <button onclick="step(1)">+1</button>
         <button onclick="step(10)">+10</button>
