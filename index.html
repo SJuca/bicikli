@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ciklusléptető animáció — mérés példa</title>
+<style>
+  :root{font-family:Inter,ui-sans-serif,system-ui,Arial,Helvetica,sans-serif}
+  body{margin:0;background:#0f172a;color:#e6eef8;display:flex;align-items:flex-start;gap:20px;padding:20px}
+  .panel{background:#0b1220;border-radius:12px;padding:16px;box-shadow:0 8px 30px rgba(2,6,23,.6);width:360px}
+  h1{font-size:18px;margin:0 0 10px}
+  .vars{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .box{background:#071028;border-radius:8px;padding:10px;min-height:48px;display:flex;flex-direction:column;justify-content:center}
+  .label{font-size:12px;color:#9fb0d9}
+  .value{font-size:16px;font-weight:700}
+  .wide{grid-column:span 2}
+  .controls{display:flex;gap:8px;margin-top:12px}
+  button{background:#0b1220;border:1px solid #17324a;color:#cfe8ff;padding:8px 10px;border-radius:8px;cursor:pointer}
+  button.secondary{background:transparent;border:1px solid #213449}
+  .codebox{flex:1;min-width:480px;padding:16px;border-radius:12px;background:linear-gradient(180deg,#071222, #021018);height:640px;overflow:auto}
+  pre{background:#02121a;padding:12px;border-radius:8px;color:#cfe8ff}
+  .status{margin-top:10px;font-size:13px;color:#9fb0d9}
+  .time-list{margin-top:8px;font-size:13px;color:#bcd7ff}
+  .small{font-size:13px}
+</style>
+</head>
+<body>
+  <div class="panel">
+    <h1>C++ program — lépésenkénti szimuláció</h1>
+    <div class="vars">
+      <div class="box wide">
+        <div class="label">i (ciklusváltozó)</div>
+        <div id="i_val" class="value">0</div>
+      </div>
+
+      <div class="box">
+        <div class="label">meres[i]</div>
+        <div id="mer_val" class="value">36</div>
+      </div>
+
+      <div class="box">
+        <div class="label">ido[i]</div>
+        <div id="ido_val" class="value">6:15</div>
+      </div>
+
+      <div class="box">
+        <div class="label">osszeg (2. feladat)</div>
+        <div id="osszeg_val" class="value">0</div>
+      </div>
+
+      <div class="box">
+        <div class="label">bic (óránkénti számláló a 3. feladatban)</div>
+        <div id="bic_val" class="value">0</div>
+      </div>
+
+      <div class="box">
+        <div class="label">ora (kezdőóra)</div>
+        <div id="ora_val" class="value">6</div>
+      </div>
+
+      <div class="box">
+        <div class="label">legn (max)</div>
+        <div id="legn_val" class="value">36</div>
+      </div>
+
+      <div class="box">
+        <div class="label">index (max helye)</div>
+        <div id="index_val" class="value">0</div>
+      </div>
+
+      <div class="box wide">
+        <div class="label">Konzol kimenet (szimulált cout)</div>
+        <div id="console" class="value small" style="white-space:pre-wrap;line-height:1.35;max-height:160px;overflow:auto">2. feladat\n\n3. feladat\n</div>
+      </div>
+
+      <div class="box wide">
+        <div class="label">Vezérlők</div>
+        <div class="controls">
+          <button id="prev">◀ Előző</button>
+          <button id="next">Következő ▶</button>
+          <button id="run">Automata ▶</button>
+          <button id="stop" class="secondary">Megáll</button>
+          <button id="reset" class="secondary">Reset</button>
+        </div>
+        <div class="status">Lépj végig a cikluson: a <strong>Következő</strong> minden egyes i lépést végrehajt (a megadott C++ logika szerint).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="codebox">
+    <h1>Forrás (C++ program rövidített, a megjelenítés logikájával)</h1>
+    <pre id="source">#include &lt;iostream&gt;\nusing namespace std;\n\nint main() {\n    int meres[16]={36,48,39,-1,30,43,-1,76,67,82,73,75,64,73,69,63};\n    string ido[16]={"6:15","6:30","6:45","7:00","7:15","7:30","7:45","8:00","8:15","8:30","8:45","9:00","9:15","9:30","9:45","10:00"};\n\n    // 2. feladat: osszeg pozitív meresek\n    // 3. feladat: orankenti osszeg (4-es csoportok)\n    // 4. feladat: maximum\n}</pre>
+    <div class="time-list small">Időpontok: 6:15 — 10:00 (16 mérés, 15 percenként)</div>
+  </div>
+
+<script>
+(function(){
+  const meres=[36,48,39,-1,30,43,-1,76,67,82,73,75,64,73,69,63];
+  const ido=["6:15","6:30","6:45","7:00","7:15","7:30","7:45","8:00","8:15","8:30","8:45","9:00","9:15","9:30","9:45","10:00"];
+
+  let i=0;
+  let osszeg=0;
+  let bic=0;
+  let ora=6;
+  let legn=meres[0];
+  let index=0;
+
+  const el = id => document.getElementById(id);
+  const updateUI = () => {
+    el('i_val').textContent = i;
+    el('mer_val').textContent = meres[i];
+    el('ido_val').textContent = ido[i];
+    el('osszeg_val').textContent = osszeg;
+    el('bic_val').textContent = bic;
+    el('ora_val').textContent = ora;
+    el('legn_val').textContent = legn;
+    el('index_val').textContent = index;
+  };
+
+  const writeConsole = (text, append=true) => {
+    const c=el('console');
+    if(append) c.textContent += text + '\n'; else c.textContent = text + '\n';
+    c.scrollTop = c.scrollHeight;
+  }
+
+  // inicializálás
+  writeConsole('2. feladat');
+  writeConsole('');
+  writeConsole('3. feladat');
+  writeConsole('Orankenti meresek:');
+  updateUI();
+
+  function stepForward(){
+    if(i>=15) return; // utolsó után nem lép tovább
+    // C++ ciklus belseje (egyszerűsítve: előbb dolgozzuk fel a jelenlegi i-t, majd i++)
+
+    // 2. feladat: ha meres[i] > 0, akkor osszeg += meres[i]
+    if(meres[i] > 0) osszeg += meres[i];
+
+    // 3. feladat: bic hozzáadása (ha meres[i] < 0 akkor +0)
+    if(meres[i] < 0) bic = bic + 0; else bic = bic + meres[i];
+
+    // ha i%4==3 -> kiírjuk az ora szerinti bic értéket, majd bic=0, ora++
+    if(i % 4 === 3){
+      writeConsole(ora + ' oratol ' + bic + ' kerekparos');
+      bic = 0;
+      ora++;
+    }
+
+    // 4. feladat része: max keresés a már feldolgozott elemek között (mint a program)
+    if(meres[i] > legn){ legn = meres[i]; index = i; }
+
+    // i++ az eredeti for ciklus mintájára
+    i++;
+    // frissítjük a UI-t az új i-vel (ha i==16 akkor már kiléptünk, a meres[i] nem elérhető)
+    if(i>15) i=15;
+    updateUI();
+  }
+
+  function stepBackward(){
+    // egyszerű visszalépés: újraszámoljuk 0..i-1 alapján az állapotot (biztos és egyszerű)
+    if(i<=0){ i=0; osszeg=0; bic=0; ora=6; legn=meres[0]; index=0; updateUI(); return; }
+    i--; // visszalépünk az előző i-re és újraszámoljuk az összes változót 0..i
+    osszeg=0; bic=0; ora=6; legn=meres[0]; index=0;
+    for(let k=0;k<=i;k++){
+      if(meres[k] > 0) osszeg += meres[k];
+      if(meres[k] < 0) bic = bic + 0; else bic = bic + meres[k];
+      if(meres[k] > legn){ legn = meres[k]; index = k; }
+      if(k % 4 === 3){
+        // a konzolban már kiírt sorok törlése helyett egyszerűen újraírjuk a konzolt teljesen, úgy hogy meglegyen a helyes tartalom
+      }
+    }
+    // sztornírozunk a konzolt: újraírjuk a 3. feladat címét és minden teljes 4-es blokkját 0..i alapján
+    el('console').textContent = '2. feladat\n\n3. feladat\nOrankenti meresek:\n';
+    let tempBic=0; let tempOra=6;
+    for(let k=0;k<=i;k++){
+      if(meres[k] < 0) tempBic += 0; else tempBic += meres[k];
+      if(k%4===3){ el('console').textContent += tempOra + ' oratol ' + tempBic + ' kerekparos\n'; tempBic=0; tempOra++; }
+    }
+
+    updateUI();
+  }
+
+  let timer=null;
+  el('next').addEventListener('click', ()=>{ stepForward(); });
+  el('prev').addEventListener('click', ()=>{ stepBackward(); });
+  el('reset').addEventListener('click', ()=>{
+    i=0; osszeg=0; bic=0; ora=6; legn=meres[0]; index=0; el('console').textContent = '2. feladat\n\n3. feladat\nOrankenti meresek:\n'; updateUI();
+  });
+  el('run').addEventListener('click', ()=>{
+    if(timer) return; timer = setInterval(()=>{ if(i>=15){ clearInterval(timer); timer=null; } stepForward(); }, 600);
+  });
+  el('stop').addEventListener('click', ()=>{ if(timer){ clearInterval(timer); timer=null; } });
+
+})();
+</script>
+</body>
+</html>
