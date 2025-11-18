@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
 <meta charset="UTF-8" />
-<title>C++ Animáció – Olíva–Okker</title>
+<title>C++ Animáció – Olíva–Okker MIX</title>
 <style>
     body {
         margin: 0;
@@ -14,13 +14,16 @@
         overflow: hidden;
     }
 
-    /* Bal oldali programsáv */
+    /* BAL PANEL */
     #leftPanel {
         width: 40%;
         background: #3F4F2F;
         padding: 20px;
         overflow-y: auto;
         border-right: 3px solid #566B34;
+        position: relative;
+        display: flex;
+        flex-direction: column;
     }
 
     pre {
@@ -39,47 +42,13 @@
         border-left: 4px solid #D9B65E;
     }
 
-    /* Jobb oldali tartalom */
-    #rightPanel {
-        width: 60%;
-        background: #E8ECD9;
-        color: #1F2418;
-        padding: 20px;
-        overflow-y: auto;
-    }
-
-    .task-buttons button {
-        background: #5D6F3A;
-        border: none;
-        padding: 10px 16px;
-        margin-right: 8px;
-        color: white;
-        cursor: pointer;
-        border-radius: 6px;
-        font-size: 14px;
-    }
-
-    .task-buttons button:hover {
-        background: #6F8450;
-    }
-
-    /* Változóboxok */
-    .varbox {
-        display: inline-block;
-        min-width: 120px;
-        padding: 10px;
-        margin: 6px;
-        background: #566B34;
-        color: #E8ECD9;
-        border-radius: 6px;
-        font-size: 14px;
-    }
-
-    /* Timeline */
+    /* TIMELINE BAL ALUL */
     #timeline {
-        margin-top: 20px;
+        margin-top: auto;
+        padding-top: 16px;
         display: flex;
         gap: 4px;
+        flex-wrap: wrap;
     }
 
     .tl-item {
@@ -100,7 +69,83 @@
         font-weight: bold;
     }
 
-    /* Konzol */
+    /* JOBB PANEL */
+    #rightPanel {
+        width: 60%;
+        background: #E8ECD9;
+        color: #1F2418;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    /* Gombok – KÉK VERZIÓ elrendezés: oszlopban jobb oldalon */
+    .task-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 140px;
+        margin-bottom: 20px;
+    }
+
+    .task-buttons button {
+        background: #5D6F3A;
+        border: none;
+        padding: 10px;
+        color: white;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 14px;
+        width: 100%;
+    }
+
+    .task-buttons button:hover {
+        background: #6F8450;
+    }
+
+    /* NAVIGÁCIÓ – KÉK VERZIÓ oldalt */
+    .nav-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 140px;
+        margin-bottom: 20px;
+    }
+
+    .nav-buttons button {
+        padding: 10px;
+        font-size: 14px;
+        background: #5D6F3A;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .nav-buttons button:hover {
+        background: #6F8450;
+    }
+
+    /* TÖBBI TARTALOM JOBB OLDALT */
+    #vars, #console {
+        width: 100%;
+        margin-left: auto;
+    }
+
+    .varbox {
+        display: inline-block;
+        min-width: 120px;
+        padding: 10px;
+        margin: 6px;
+        background: #566B34;
+        color: #E8ECD9;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
     #console {
         background: #F7F8EE;
         padding: 12px;
@@ -108,31 +153,16 @@
         border-radius: 6px;
         min-height: 160px;
         white-space: pre-wrap;
-        font-family: Consolas, monospace;
-        font-size: 15px;
-    }
-
-    /* Navigáció */
-    .nav-buttons button {
-        padding: 8px 14px;
-        margin-right: 6px;
-        font-size: 14px;
-        background: #5D6F3A;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-
-    .nav-buttons button:hover {
-        background: #6F8450;
     }
 </style>
 </head>
 <body>
 
-<!-- BAL PANEL: KÓD -->
-<div id="leftPanel"></div>
+<!-- BAL PANEL -->
+<div id="leftPanel">
+    <div id="code"></div>
+    <div id="timeline"></div>
+</div>
 
 <!-- JOBB PANEL -->
 <div id="rightPanel">
@@ -149,8 +179,6 @@
         <button onclick="resetTimeline()">Reset</button>
     </div>
 
-    <div id="timeline"></div>
-
     <h3>Változók</h3>
     <div id="vars"></div>
 
@@ -159,9 +187,6 @@
 </div>
 
 <script>
-// ======================
-// PROGRAM ADATOK
-// ======================
 const meres = [36,48,39,-1,30,43,-1,76,67,82,73,75,64,73,69,63];
 const ido = ["6:15","6:30","6:45","7:00","7:15","7:30","7:45","8:00","8:15","8:30","8:45","9:00","9:15","9:30","9:45","10:00"];
 
@@ -169,28 +194,26 @@ let currentTask = 2;
 let indexPos = 0;
 const maxIndex = 15;
 
-// ======================
-// KÓD MEGJELENÍTÉS
-// ======================
+// ===================== KÓD =====================
 const codeLines = [
-    "int meres[16]={36,48,39,-1,30,43,-1,76,67,82,73,75,64,73,69,63};",
-    "string ido[16]={...};",
-    "// 2. feladat – összegzés",
-    "if (meres[i] > 0)",
-    "    osszeg += meres[i];",
-    "// 3. feladat – óránkénti összeg",
-    "if (meres[i] < 0)",
-    "    bic += 0;",
-    "else",
-    "    bic += meres[i];",
-    "if (i % 4 == 3)",
-    "    cout << ora << \" órától \" << bic;",
-    "// 4. feladat – maximum",
-    "if (meres[i] > legn)",
-    "{",
-    "    legn = meres[i];",
-    "    index = i;",
-    "}"
+"int meres[16]={36,48,39,-1,30,43,-1,76,67,82,73,75,64,73,69,63};",
+"string ido[16]={...};",
+"// 2. feladat – összegzés",
+"if (meres[i] > 0)",
+"    osszeg += meres[i];",
+"// 3. feladat – óránkénti összeg",
+"if (meres[i] < 0)",
+"    bic += 0;",
+"else",
+"    bic += meres[i];",
+"if (i % 4 == 3)",
+"    cout << ora << ' órától ' << bic;",
+"// 4. feladat – maximum",
+"if (meres[i] > legn)",
+"{",
+"    legn = meres[i];",
+"    index = i;",
+"}"
 ];
 
 function renderCode(activeLine) {
@@ -198,12 +221,10 @@ function renderCode(activeLine) {
     codeLines.forEach((line, idx) => {
         html += `<div class='code-line ${idx===activeLine?"active-line":""}'>${line}</div>`;
     });
-    document.getElementById("leftPanel").innerHTML = `<pre>${html}</pre>`;
+    document.getElementById("code").innerHTML = `<pre>${html}</pre>`;
 }
 
-// ======================
-// TIMELINE
-// ======================
+// ===================== TIMELINE =====================
 function renderTimeline() {
     let html = "";
     for (let i=0; i<=15; i++) {
@@ -217,23 +238,15 @@ function jump(i) {
     compute();
 }
 
-// ======================
-// NAGY LÉPTETŐK
-// ======================
+// ===================== LÉPTETÉS =====================
 function step(n) {
     let newPos = indexPos + n;
-
     if (newPos > maxIndex) {
         indexPos = maxIndex;
-        alert("Nincs több adat ennél a feladatnál!");
-    }
-    else if (newPos < 0) {
+        alert("Nincs több adat!");
+    } else if (newPos < 0) {
         indexPos = 0;
-    }
-    else {
-        indexPos = newPos;
-    }
-
+    } else indexPos = newPos;
     compute();
 }
 
@@ -242,17 +255,13 @@ function resetTimeline() {
     compute();
 }
 
-// ======================
-// FELADAT VÁLTÁS
-// ======================
+// ===================== FELADAT =====================
 function setTask(t) {
     currentTask = t;
     resetTimeline();
 }
 
-// ======================
-// FŐ SZÁMÍTÁS
-// ======================
+// ===================== SZÁMÍTÁS =====================
 function compute() {
     renderTimeline();
 
@@ -264,13 +273,12 @@ function compute() {
     if (currentTask === 2) {
         let osszeg = 0;
         for (let k=0; k<=i; k++) {
-            if (meres[k] > 0) {
-                osszeg += meres[k];
-                highlight = 4;
-            } else highlight = 3;
+            if (meres[k] > 0) { osszeg += meres[k]; highlight = 4; }
+            else highlight = 3;
         }
         vars = { i, "meres[i]": meres[i], osszeg };
-        consoleText = `2. feladat\nÖsszesen eddig: ${osszeg} kerékpáros`;
+        consoleText = `2. feladat
+Összesen eddig: ${osszeg} kerékpáros`;
     }
 
     else if (currentTask === 3) {
@@ -278,52 +286,42 @@ function compute() {
         let bic = 0;
         let blocks = [];
 
-        for (let k=0; k<=i; k++) {
-            if (meres[k] < 0) {
-                bic += 0;
-                highlight = 6;
-            }
-            else {
-                bic += meres[k];
-                highlight = 9;
-            }
-
-            if (k % 4 === 3) {
-                blocks.push(`${ora} órától ${bic} kerékpáros`);
-                bic = 0;
-                ora++;
-                highlight = 11;
-            }
+        for (let k=0;k<=i;k++){
+            if (meres[k] < 0){ bic += 0; highlight = 6;} else { bic += meres[k]; highlight = 9; }
+            if (k % 4 === 3){ blocks.push(`${ora} órától ${bic} kerékpáros`); bic = 0; ora++; highlight = 11; }
         }
 
         vars = { i, "meres[i]": meres[i], ora, bic };
-        consoleText = "3. feladat\nÓránkénti mérések:\n" + blocks.join("\n");
+        consoleText = "3. feladat
+Óránkénti mérés:
+" + blocks.join("
+");
     }
 
     else if (currentTask === 4) {
         let legn = meres[0];
         let idx = 0;
+        let lines = [];
 
-        for (let k=0; k<=i; k++) {
-            if (meres[k] > legn) {
-                legn = meres[k];
-                idx = k;
-                highlight = 14;
-            } else highlight = 13;
+        for (let k=0;k<=i;k++){
+            if (meres[k] > legn){ legn = meres[k]; idx = k; highlight = 14; }
+            else highlight = 13;
         }
 
-        vars = { i, "meres[i]": meres[i], legn, index: idx };
+        lines.push(`Legnagyobb érték: ${legn}`);
+        lines.push(`Időpont: ${ido[idx]}`);
+        lines.push(`Index: ${idx}`);
 
-        consoleText = `4. feladat\nLegnagyobb forgalom:\nÉrték: ${legn}\nIdőpont: ${ido[idx]}\nIndex: ${idx}`;
+        vars = { i, "meres[i]": meres[i], legn, index: idx };
+        consoleText = "4. feladat
+" + lines.join("
+");
     }
 
     renderCode(highlight);
 
-    // Változóboxok kirajzolása
     let vb = "";
-    for (let k in vars) {
-        vb += `<div class='varbox'>${k}: <b>${vars[k]}</b></div>`;
-    }
+    for (let k in vars) vb += `<div class='varbox'>${k}: <b>${vars[k]}</b></div>`;
     document.getElementById("vars").innerHTML = vb;
 
     document.getElementById("console").textContent = consoleText;
@@ -331,7 +329,5 @@ function compute() {
 
 compute();
 </script>
-
 </body>
 </html>
-
