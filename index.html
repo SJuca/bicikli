@@ -1,519 +1,337 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hu">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>C++ program lépésenként — interaktív animáció</title>
+<meta charset="UTF-8" />
+<title>C++ Animáció – Olíva–Okker</title>
 <style>
-  :root{
-    --bg:#071227; --panel:#071b2a; --card:#0f2b44; --muted:#9fb6dd;
-    --accent:#2b6ea3; --accent-2:#274067; --box:#12304d; --text:#eaf4ff;
-  }
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,#041022 0%, #071227 100%);font-family:Inter,Segoe UI,Arial;padding:12px;color:var(--text)}
-  .wrap{display:flex;gap:16px;height:calc(100% - 24px);}
-  /* left: code small, right: variables large */
-  .left{width:34%;min-width:300px;background:rgba(2,10,20,0.6);border-radius:12px;padding:14px;box-shadow:0 6px 22px rgba(2,6,23,.6);overflow:auto}
-  .right{flex:1;background:rgba(2,10,20,0.25);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;overflow:auto}
-  h1{margin:0 0 8px;font-size:18px}
-  /* task tabs */
-  .task-tabs{display:flex;gap:8px;margin-bottom:8px}
-  .task-tabs button{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer}
-  .task-tabs button.active{background:var(--accent-2);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
-  /* code */
-  pre.code{background:linear-gradient(180deg,#042233,#031726);padding:12px;border-radius:8px;color:#cfe8ff;line-height:1.5;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;font-size:13px;overflow:auto;}
-  .code-line{padding:2px 6px;border-radius:6px}
-  .code-line.num{color:#8fb0d5;display:inline-block;width:32px;text-align:right;margin-right:8px;opacity:.7}
-  .code-line.highlight{background:linear-gradient(90deg, rgba(39,64,103,0.45), rgba(43,110,163,0.18));box-shadow:0 6px 20px rgba(23,44,68,0.3)}
-  /* timeline */
-  .timeline{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-  .t-step{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:#0f2b44;color:#cfe8ff;cursor:pointer;border:1px solid rgba(255,255,255,0.04)}
-  .t-step.active{background:var(--accent);box-shadow:0 8px 20px rgba(43,110,163,0.12)}
-  .timeline-label{color:var(--muted);font-size:13px;margin-top:8px}
-  /* controls and vars */
-  .controls{display:flex;gap:8px;align-items:center}
-  .controls button{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#0b2234;color:var(--text);cursor:pointer}
-  .controls button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.03)}
-  .vars{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:start}
-  .vcard{background:linear-gradient(180deg, rgba(10,28,45,0.9), rgba(8,22,36,0.9));border-radius:12px;padding:12px;box-shadow:0 8px 26px rgba(2,6,23,.5);min-height:64px;display:flex;flex-direction:column;justify-content:center}
-  .vlabel{font-size:12px;color:var(--muted);margin-bottom:6px}
-  .vvalue{font-size:20px;font-weight:700}
-  /* colored accent boxes for values */
-  .vcolor{padding:8px;border-radius:8px;background:linear-gradient(180deg,#0f3b5d, #0c2b46);display:inline-block}
-  .console{margin-top:8px;background:rgba(0,0,0,0.15);padding:10px;border-radius:8px;min-height:90px;color:#d9eefc;overflow:auto;font-family:ui-monospace,monospace}
-  .small{font-size:13px;color:var(--muted)}
-  @media (max-width:900px){
-    .wrap{flex-direction:column}
-    .left{width:100%;order:2}
-    .right{order:1}
-  }
+    body {
+        margin: 0;
+        font-family: Consolas, monospace;
+        background: #3F4F2F;
+        color: #E8ECD9;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    /* Bal oldali programsáv */
+    #leftPanel {
+        width: 40%;
+        background: #3F4F2F;
+        padding: 20px;
+        overflow-y: auto;
+        border-right: 3px solid #566B34;
+    }
+
+    pre {
+        white-space: pre-wrap;
+        font-size: 15px;
+        line-height: 1.4;
+    }
+
+    .code-line {
+        padding: 3px 6px;
+        border-left: 4px solid transparent;
+    }
+
+    .active-line {
+        background: #D9B65E33;
+        border-left: 4px solid #D9B65E;
+    }
+
+    /* Jobb oldali tartalom */
+    #rightPanel {
+        width: 60%;
+        background: #E8ECD9;
+        color: #1F2418;
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+    .task-buttons button {
+        background: #5D6F3A;
+        border: none;
+        padding: 10px 16px;
+        margin-right: 8px;
+        color: white;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .task-buttons button:hover {
+        background: #6F8450;
+    }
+
+    /* Változóboxok */
+    .varbox {
+        display: inline-block;
+        min-width: 120px;
+        padding: 10px;
+        margin: 6px;
+        background: #566B34;
+        color: #E8ECD9;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    /* Timeline */
+    #timeline {
+        margin-top: 20px;
+        display: flex;
+        gap: 4px;
+    }
+
+    .tl-item {
+        width: 28px;
+        height: 28px;
+        background: #5D6F3A;
+        border-radius: 4px;
+        text-align: center;
+        line-height: 28px;
+        cursor: pointer;
+        color: white;
+        font-size: 13px;
+    }
+
+    .tl-active {
+        background: #C9971A !important;
+        color: #1F2418;
+        font-weight: bold;
+    }
+
+    /* Konzol */
+    #console {
+        background: #F7F8EE;
+        padding: 12px;
+        margin-top: 20px;
+        border-radius: 6px;
+        min-height: 160px;
+        white-space: pre-wrap;
+        font-family: Consolas, monospace;
+        font-size: 15px;
+    }
+
+    /* Navigáció */
+    .nav-buttons button {
+        padding: 8px 14px;
+        margin-right: 6px;
+        font-size: 14px;
+        background: #5D6F3A;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .nav-buttons button:hover {
+        background: #6F8450;
+    }
 </style>
 </head>
 <body>
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-    <h1>C++ lépésenként — Interaktív animáció</h1>
-    <div class="small" style="margin-left:10px">Kattints a feladat gombra a változók szűréséhez. A timeline / léptetők a program futtatását vezérlik.</div>
-  </div>
 
-  <div class="wrap">
-    <!-- LEFT: CODE + TIMELINE (kisebb terület) -->
-    <div class="left" id="left">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div style="display:flex;gap:8px;align-items:center">
-          <div style="color:var(--muted);font-size:13px">Programkód</div>
-        </div>
-        <div class="small">16 mérés, 15 perc</div>
-      </div>
+<!-- BAL PANEL: KÓD -->
+<div id="leftPanel"></div>
 
-      <pre class="code" id="codeBlock" aria-hidden="false"></pre>
-
-      <div class="timeline-label">Timeline (mérés index 0–15):</div>
-      <div class="timeline" id="timeline"></div>
-
-      <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;align-items:center">
-        <button id="prevBtn" class="secondary">◀ Előző</button>
-        <button id="nextBtn">Következő ▶</button>
-      </div>
+<!-- JOBB PANEL -->
+<div id="rightPanel">
+    <div class="task-buttons">
+        <button onclick="setTask(2)">2. feladat</button>
+        <button onclick="setTask(3)">3. feladat</button>
+        <button onclick="setTask(4)">4. feladat</button>
     </div>
 
-    <!-- RIGHT: LARGE VARIABLES + CONTROLS -->
-    <div class="right">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div class="task-tabs" role="tablist" aria-label="Feladatok">
-          <button data-task="2" class="active">2. feladat</button>
-          <button data-task="3">3. feladat</button>
-          <button data-task="4">4. feladat</button>
-        </div>
+    <div class="nav-buttons">
+        <button onclick="step(-1)">-1</button>
+        <button onclick="step(1)">+1</button>
+        <button onclick="step(10)">+10</button>
+        <button onclick="resetTimeline()">Reset</button>
+    </div>
 
-        <div class="controls">
-          <button id="runBtn">Automata ▶</button>
-          <button id="stopBtn" class="secondary">Megáll ■</button>
-          <button id="resetBtn" class="secondary">Reset ⟲</button>
-        </div>
-      </div>
+    <div id="timeline"></div>
 
-      <!-- Változók (nagy terület) -->
-      <div class="vars" id="vars">
-        <!-- minden vcard-ot data-f attribútumban jelölünk, hogy melyik feladathoz tartozik (2,3,4) -->
-        <div class="vcard" data-f="2 3 4"><div class="vlabel">i (ciklusváltozó)</div><div id="iVal" class="vvalue vcolor">0</div></div>
-        <div class="vcard" data-f="2 3 4"><div class="vlabel">meres[i]</div><div id="merVal" class="vvalue vcolor">36</div></div>
-        <div class="vcard" data-f="3 4"><div class="vlabel">ido[i]</div><div id="idoVal" class="vvalue vcolor">6:15</div></div>
+    <h3>Változók</h3>
+    <div id="vars"></div>
 
-        <div class="vcard" data-f="2"><div class="vlabel">osszeg (2. feladat)</div><div id="osszegVal" class="vvalue vcolor">0</div></div>
-
-        <div class="vcard" data-f="3"><div class="vlabel">bic (óra-összeg)</div><div id="bicVal" class="vvalue vcolor">0</div></div>
-        <div class="vcard" data-f="3"><div class="vlabel">ora (kezdőóra)</div><div id="oraVal" class="vvalue vcolor">6</div></div>
-
-        <div class="vcard" data-f="4"><div class="vlabel">legn (max)</div><div id="legnVal" class="vvalue vcolor">36</div></div>
-        <div class="vcard" data-f="4"><div class="vlabel">index (max helye)</div><div id="indexVal" class="vvalue vcolor">0</div></div>
-      </div>
-
-      <div style="display:flex;gap:10px;margin-top:10px;align-items:flex-start">
-        <div style="flex:1">
-          <div class="small" style="margin-bottom:6px">Konzol kimenet (szimulált <code>cout</code>)</div>
-          <div class="console" id="console">2. feladat
-
-3. feladat
-Orankenti meresek:
+    <h3>Konzol</h3>
+    <div id="console"></div>
 </div>
-        </div>
-        <div style="width:260px">
-          <div class="small" style="margin-bottom:6px">Gyorsléptetés</div>
-          <div style="display:flex;gap:8px;flex-direction:column">
-            <button id="stepBack">−1 (gyors)</button>
-            <button id="stepNext">+1 (gyors)</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
 <script>
-/* ======= Program adatok (ugyanaz, mint a C++ tömbök) ======= */
+// ======================
+// PROGRAM ADATOK
+// ======================
 const meres = [36,48,39,-1,30,43,-1,76,67,82,73,75,64,73,69,63];
 const ido = ["6:15","6:30","6:45","7:00","7:15","7:30","7:45","8:00","8:15","8:30","8:45","9:00","9:15","9:30","9:45","10:00"];
-const N = meres.length;
 
-/* ======= DOM referenciák ======= */
-const codeBlock = document.getElementById('codeBlock');
-const timelineEl = document.getElementById('timeline');
-const iVal = document.getElementById('iVal');
-const merVal = document.getElementById('merVal');
-const idoVal = document.getElementById('idoVal');
-const osszegVal = document.getElementById('osszegVal');
-const bicVal = document.getElementById('bicVal');
-const oraVal = document.getElementById('oraVal');
-const legnVal = document.getElementById('legnVal');
-const indexVal = document.getElementById('indexVal');
-const consoleEl = document.getElementById('console');
+let currentTask = 2;
+let indexPos = 0;
+const maxIndex = 15;
 
-const taskButtons = document.querySelectorAll('.task-tabs button');
-const varCards = document.querySelectorAll('.vcard');
-
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const runBtn = document.getElementById('runBtn');
-const stopBtn = document.getElementById('stopBtn');
-const resetBtn = document.getElementById('resetBtn');
-const stepBackBtn = document.getElementById('stepBack');
-const stepNextBtn = document.getElementById('stepNext');
-
-/* ======= Kezdeti állapotok (a C++ program logikája szerint) ======= */
-let state = {
-  i: 0,
-  osszeg: 0,
-  bic: 0,
-  ora: 6,
-  legn: meres[0],
-  index: 0
-};
-
-/* ======= Kód-sorok megjelenítése (számozva, soronként kiemelhető) ======= */
+// ======================
+// KÓD MEGJELENÍTÉS
+// ======================
 const codeLines = [
-"int meres[16]={36,48,39,-1,30,43,-1,76,67,82,73,75,64,73,69,63};",
-"string ido[16] = {\"6:15\",\"6:30\",\"6:45\",\"7:00\",\"7:15\",\"7:30\",\"7:45\",\"8:00\",\"8:15\",\"8:30\",\"8:45\",\"9:00\",\"9:15\",\"9:30\",\"9:45\",\"10:00\"};",
-"",
-"// 2. feladat — osszegzes",
-"if (meres[i] > 0)",
-"    osszeg = osszeg + meres[i];",
-"",
-"// 3. feladat — orankenti osszeg",
-"if (meres[i] < 0)",
-"    bic = bic + 0;",
-"else",
-"    bic = bic + meres[i];",
-"",
-"if (i % 4 == 3) {",
-"    cout << ora << \" oratol \" << bic << \" kerekparos\";",
-"    bic = 0;",
-"    ora++;",
-"}",
-"",
-"// 4. feladat — maximum",
-"if (meres[i] > legn) {",
-"    legn = meres[i];",
-"    index = i;",
-"}"
+    "int meres[16]={36,48,39,-1,30,43,-1,76,67,82,73,75,64,73,69,63};",
+    "string ido[16]={...};",
+    "// 2. feladat – összegzés",
+    "if (meres[i] > 0)",
+    "    osszeg += meres[i];",
+    "// 3. feladat – óránkénti összeg",
+    "if (meres[i] < 0)",
+    "    bic += 0;",
+    "else",
+    "    bic += meres[i];",
+    "if (i % 4 == 3)",
+    "    cout << ora << \" órától \" << bic;",
+    "// 4. feladat – maximum",
+    "if (meres[i] > legn)",
+    "{",
+    "    legn = meres[i];",
+    "    index = i;",
+    "}"
 ];
 
-function renderCode(highlightIdx) {
-  // highlightIdx = index of line to highlight (0-based in codeLines)
-  codeBlock.innerHTML = codeLines.map((ln, idx) => {
-    const num = `<span class='code-line num'>${String(idx+1).padStart(2,' ')}</span>`;
-    const txt = `<span style="white-space:pre">${ln.replace(/</g,'&lt;')}</span>`;
-    const cls = idx === highlightIdx ? 'code-line highlight' : 'code-line';
-    return `<div class="${cls}">${num}${txt}</div>`;
-  }).join('');
+function renderCode(activeLine) {
+    let html = "";
+    codeLines.forEach((line, idx) => {
+        html += `<div class='code-line ${idx===activeLine?"active-line":""}'>${line}</div>`;
+    });
+    document.getElementById("leftPanel").innerHTML = `<pre>${html}</pre>`;
 }
 
-/* ======= Timeline létrehozás ======= */
-function buildTimeline() {
-  timelineEl.innerHTML = '';
-  for (let k=0;k<N;k++){
-    const d = document.createElement('div');
-    d.className = 't-step';
-    d.textContent = k;
-    d.dataset.step = k;
-    d.title = `i = ${k} (${ido[k]})`;
-    d.addEventListener('click', ()=>{ goToStep(k); });
-    timelineEl.appendChild(d);
-  }
-}
-buildTimeline();
-
-/* ======= Kiterjesztett leképezés: melyik kódsorra mutassunk az aktuális feladat + i alapján =======
-   Egyszerű, de szemléletes mapping:
-   - 2. feladat: ha meres[i] > 0 akkor a hozzáadás sorát emeljük ki (sor 6: index 5)
-   - 3. feladat: bic-hez adás sor (sor 11/12), illetve ha i%4==3 akkor a kiírás sor (14)
-   - 4. feladat: max összehasonlítás (sor 19)
-*/
-function getHighlightLine(task, i) {
-  if (task === 2) {
-    // highlight the addition line
-    return 5; // line index: "osszeg = osszeg + meres[i];" (0-based)
-  }
-  if (task === 3) {
-    if (i % 4 === 3) return 13; // the cout line (0-based 13)
-    // else highlight the bic addition (choose else branch line)
-    return 11; // "bic = bic + meres[i];"
-  }
-  if (task === 4) {
-    return 18; // "if (meres[i] > legn) {"
-  }
-  return 0;
-}
-
-/* ======= UI frissítése az aktuális state alapján ======= */
-function refreshUI() {
-  // clamp i for display (0..N-1)
-  const i = Math.max(0, Math.min(state.i, N-1));
-  iVal.textContent = i;
-  merVal.textContent = meres[i];
-  idoVal.textContent = ido[i];
-  osszegVal.textContent = state.osszeg;
-  bicVal.textContent = state.bic;
-  oraVal.textContent = state.ora;
-  legnVal.textContent = state.legn;
-  indexVal.textContent = state.index;
-
-  // timeline aktív jelölés
-  document.querySelectorAll('.t-step').forEach(el=>{
-    el.classList.toggle('active', Number(el.dataset.step) === i);
-  });
-
-  // console: csak a kiválasztott feladat kimenetét mutatjuk.
-  // A console tartalma a futás/műveletek során frissül (step-ek), itt nem írunk felül.
-  // code kiemelés a kiválasztott feladat és i alapján
-  const currentTask = Number(document.querySelector('.task-tabs button.active').dataset.task);
-  const hl = getHighlightLine(currentTask, i);
-  renderCode(hl);
-
-  // filter var cards by active task
-  const curTaskStr = String(currentTask);
-  varCards.forEach(c=>{
-    const f = c.dataset.f.split(' ');
-    c.style.display = f.includes(curTaskStr) ? 'block' : 'none';
-  });
-}
-
-/* ======= Változó-kártyák szűrése feladat szerint (kattintás) ======= */
-taskButtons.forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    taskButtons.forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    // amikor feladatot váltunk: a konzol csak az adott feladathoz tartozó outputot mutassa.
-    // egyszerű megoldás: teljes reset a konzol fejlécéhez, majd újrafuttatás eddigi állapot szerint,
-    // de csak a kiválasztott feladat kimenetét jelenítjük meg.
-    rebuildConsoleForTask();
-    refreshUI();
-  });
-});
-
-function rebuildConsoleForTask() {
-  const task = Number(document.querySelector('.task-tabs button.active').dataset.task);
-  // alap-fejléc
-  if (task === 2) {
-    consoleEl.textContent = '2. feladat\n\n';
-  } else if (task === 3) {
-    consoleEl.textContent = '3. feladat\nOrankenti meresek:\n';
-    // recreate hourly lines for already processed full blocks based on state
-    // we need to simulate 0..state.i processed to print completed hour-lines
-    let tmpO = 6;
-    let tmpB = 0;
-    for (let k=0;k<=state.i;k++){
-      if (meres[k] > 0) tmpB += meres[k];
-      if (k % 4 === 3) { consoleEl.textContent += `${tmpO} oratol ${tmpB} kerekparos\n`; tmpB = 0; tmpO++; }
+// ======================
+// TIMELINE
+// ======================
+function renderTimeline() {
+    let html = "";
+    for (let i=0; i<=15; i++) {
+        html += `<div class='tl-item ${i===indexPos?"tl-active":""}' onclick='jump(${i})'>${i}</div>`;
     }
-  } else if (task === 4) {
-    consoleEl.textContent = '4. feladat\n\n';
-    if (state.index !== undefined) {
-      // only show result if we have processed at least one element
-      consoleEl.textContent += `Az athaladok maximalis szama ${state.legn}; a rogzites idopontja ${ido[state.index] || ''}\n`;
-    }
-  }
+    document.getElementById("timeline").innerHTML = html;
 }
 
-/* ======= Program logika: lépés előre (a C++ for-ciklus egy iterációja) ======= */
-function stepForward() {
-  if (state.i >= N) return;
-  const i = state.i;
-
-  // 2. feladat: osszeg csak ha >0
-  if (meres[i] > 0) state.osszeg += meres[i];
-
-  // 3. feladat: bic hozzáadása (ha <0 akkor +0, ugyanaz)
-  if (meres[i] < 0) {
-    state.bic = state.bic + 0;
-  } else {
-    state.bic = state.bic + meres[i];
-  }
-
-  // ha i%4 == 3 => kiírjuk az órás összeget, majd bic=0, ora++
-  if (i % 4 === 3) {
-    // csak akkor írunk konzolra, ha a 3. feladat aktív — különben az eredményt nem jelenítjük
-    if (Number(document.querySelector('.task-tabs button.active').dataset.task) === 3) {
-      consoleEl.textContent += `${state.ora} oratol ${state.bic} kerekparos\n`;
-    }
-    state.bic = 0;
-    state.ora++;
-  }
-
-  // 4. feladat: max keresés
-  if (meres[i] > state.legn) {
-    state.legn = meres[i];
-    state.index = i;
-  }
-
-  // 2. feladat — ha aktív, frissítjük a konzolt (összeg kiírása csak akkor, ha a feladat aktív és kérjük)
-  if (Number(document.querySelector('.task-tabs button.active').dataset.task) === 2) {
-    // frissítjük a header + mutatjuk az aktuális összeget
-    consoleEl.textContent = `2. feladat\n\nOsszesen ${state.osszeg} kerekparost szamoltak.\n`;
-  }
-
-  // 4. feladat — ha aktív, frissítjük a konzolt az aktuális maximumra
-  if (Number(document.querySelector('.task-tabs button.active').dataset.task) === 4) {
-    if (state.index !== undefined) {
-      consoleEl.textContent = `4. feladat\n\nAz athaladok maximalis szama ${state.legn}; a rogzites idopontja ${ido[state.index] || ''}\n`;
-    }
-  }
-
-  // növeljük i-t (mint a for ciklus vége)
-  state.i++;
-
-  // ha túlmentünk, engedjük megjeleníteni az utolsó indexet, de ne okozzon hibát
-  if (state.i > N-1) state.i = N-1;
-
-  refreshUI();
+function jump(i) {
+    indexPos = i;
+    compute();
 }
 
-/* ======= Visszalépés: egyszerű, biztonságos módszer — újraszámoljuk 0..i-1 alapján ======= */
-function stepBackward() {
-  // ha i==0 akkor resetelünk egyszerűen
-  if (state.i <= 0) {
-    resetState();
-    return;
-  }
-  // visszalépünk az előző indexre és újraszámoljuk teljesen
-  state.i = state.i - 1;
-  // recompute all from zero up to state.i-1 (inclusive)
-  const upto = state.i - 1;
-  // reset baseline
-  state.osszeg = 0;
-  state.bic = 0;
-  state.ora = 6;
-  state.legn = meres[0];
-  state.index = 0;
-  // rebuild console for active task
-  rebuildConsoleForTask();
+// ======================
+// NAGY LÉPTETŐK
+// ======================
+function step(n) {
+    let newPos = indexPos + n;
 
-  // run through 0..upto inclusive
-  for (let k=0;k<=upto;k++){
-    // 2.
-    if (meres[k] > 0) state.osszeg += meres[k];
-    // 3.
-    if (meres[k] < 0) {
-      state.bic = state.bic + 0;
-    } else {
-      state.bic = state.bic + meres[k];
+    if (newPos > maxIndex) {
+        indexPos = maxIndex;
+        alert("Nincs több adat ennél a feladatnál!");
     }
-    if (k % 4 === 3) {
-      // append only if task 3 active
-      if (Number(document.querySelector('.task-tabs button.active').dataset.task) === 3) {
-        consoleEl.textContent += `${state.ora} oratol ${state.bic} kerekparos\n`;
-      }
-      state.bic = 0;
-      state.ora++;
+    else if (newPos < 0) {
+        indexPos = 0;
     }
-    // 4.
-    if (meres[k] > state.legn) {
-      state.legn = meres[k];
-      state.index = k;
+    else {
+        indexPos = newPos;
     }
-  }
-  // update console for tasks 2 or 4 if active (to display recomputed result)
-  const activeTask = Number(document.querySelector('.task-tabs button.active').dataset.task);
-  if (activeTask === 2) {
-    consoleEl.textContent = `2. feladat\n\nOsszesen ${state.osszeg} kerekparost szamoltak.\n`;
-  } else if (activeTask === 4) {
-    consoleEl.textContent = `4. feladat\n\nAz athaladok maximalis szama ${state.legn}; a rogzites idopontja ${ido[state.index] || ''}\n`;
-  }
 
-  refreshUI();
+    compute();
 }
 
-/* ======= GOTO STEP: amikor a timeline egy lépésre kattintanak ======= */
-function goToStep(target) {
-  // safety: if target is outside, clamp
-  target = Math.max(0, Math.min(N-1, target));
-  // reset then run target steps (clear console)
-  resetState(false);
-  // run forward target steps
-  for (let k=0;k<=target;k++){
-    if (meres[k] > 0) state.osszeg += meres[k];
-    if (meres[k] < 0) {
-      state.bic = state.bic + 0;
-    } else {
-      state.bic = state.bic + meres[k];
+function resetTimeline() {
+    indexPos = 0;
+    compute();
+}
+
+// ======================
+// FELADAT VÁLTÁS
+// ======================
+function setTask(t) {
+    currentTask = t;
+    resetTimeline();
+}
+
+// ======================
+// FŐ SZÁMÍTÁS
+// ======================
+function compute() {
+    renderTimeline();
+
+    let i = indexPos;
+    let vars = {};
+    let consoleText = "";
+    let highlight = null;
+
+    if (currentTask === 2) {
+        let osszeg = 0;
+        for (let k=0; k<=i; k++) {
+            if (meres[k] > 0) {
+                osszeg += meres[k];
+                highlight = 4;
+            } else highlight = 3;
+        }
+        vars = { i, "meres[i]": meres[i], osszeg };
+        consoleText = `2. feladat\nÖsszesen eddig: ${osszeg} kerékpáros`;
     }
-    if (k % 4 === 3) {
-      // only print if 3rd task active
-      if (Number(document.querySelector('.task-tabs button.active').dataset.task) === 3) {
-        consoleEl.textContent += `${state.ora} oratol ${state.bic} kerekparos\n`;
-      }
-      state.bic = 0;
-      state.ora++;
+
+    else if (currentTask === 3) {
+        let ora = 6;
+        let bic = 0;
+        let blocks = [];
+
+        for (let k=0; k<=i; k++) {
+            if (meres[k] < 0) {
+                bic += 0;
+                highlight = 6;
+            }
+            else {
+                bic += meres[k];
+                highlight = 9;
+            }
+
+            if (k % 4 === 3) {
+                blocks.push(`${ora} órától ${bic} kerékpáros`);
+                bic = 0;
+                ora++;
+                highlight = 11;
+            }
+        }
+
+        vars = { i, "meres[i]": meres[i], ora, bic };
+        consoleText = "3. feladat\nÓránkénti mérések:\n" + blocks.join("\n");
     }
-    if (meres[k] > state.legn) {
-      state.legn = meres[k];
-      state.index = k;
+
+    else if (currentTask === 4) {
+        let legn = meres[0];
+        let idx = 0;
+
+        for (let k=0; k<=i; k++) {
+            if (meres[k] > legn) {
+                legn = meres[k];
+                idx = k;
+                highlight = 14;
+            } else highlight = 13;
+        }
+
+        vars = { i, "meres[i]": meres[i], legn, index: idx };
+
+        consoleText = `4. feladat\nLegnagyobb forgalom:\nÉrték: ${legn}\nIdőpont: ${ido[idx]}\nIndex: ${idx}`;
     }
-    state.i = k; // place i at current processed index
-  }
-  // update console for tasks 2 or 4 if active
-  const activeTask = Number(document.querySelector('.task-tabs button.active').dataset.task);
-  if (activeTask === 2) {
-    consoleEl.textContent = `2. feladat\n\nOsszesen ${state.osszeg} kerekparost szamoltak.\n`;
-  } else if (activeTask === 4) {
-    consoleEl.textContent = `4. feladat\n\nAz athaladok maximalis szama ${state.legn}; a rogzites idopontja ${ido[state.index] || ''}\n`;
-  }
-  // ensure state.i in 0..N-1
-  if (state.i > N-1) state.i = N-1;
-  refreshUI();
+
+    renderCode(highlight);
+
+    // Változóboxok kirajzolása
+    let vb = "";
+    for (let k in vars) {
+        vb += `<div class='varbox'>${k}: <b>${vars[k]}</b></div>`;
+    }
+    document.getElementById("vars").innerHTML = vb;
+
+    document.getElementById("console").textContent = consoleText;
 }
 
-/* ======= Reset állapot ======= */
-function resetState(clearConsole=true) {
-  state.i = 0;
-  state.osszeg = 0;
-  state.bic = 0;
-  state.ora = 6;
-  state.legn = meres[0];
-  state.index = 0;
-  // set console initial header depending on active task
-  const activeTask = Number(document.querySelector('.task-tabs button.active').dataset.task);
-  if (activeTask === 2) {
-    consoleEl.textContent = '2. feladat\n\n';
-  } else if (activeTask === 3) {
-    consoleEl.textContent = '3. feladat\nOrankenti meresek:\n';
-  } else if (activeTask === 4) {
-    consoleEl.textContent = '4. feladat\n\n';
-  } else {
-    consoleEl.textContent = '';
-  }
-  refreshUI();
-}
-
-/* ======= Automata futtatás (interval) ======= */
-let timer = null;
-function startAuto() {
-  if (timer) return;
-  timer = setInterval(()=>{
-    // if at last element, stop timer
-    if (state.i >= N-1) { clearInterval(timer); timer=null; return; }
-    stepForward();
-  }, 600);
-}
-function stopAuto() {
-  if (timer) { clearInterval(timer); timer=null; }
-}
-
-/* ======= Gombok / események ======= */
-nextBtn.addEventListener('click', ()=>{ stepForward(); });
-prevBtn.addEventListener('click', ()=>{ stepBackward(); });
-stepNextBtn.addEventListener('click', ()=>{ stepForward(); });
-stepBackBtn.addEventListener('click', ()=>{ stepBackward(); });
-
-runBtn.addEventListener('click', ()=>{ startAuto(); });
-stopBtn.addEventListener('click', ()=>{ stopAuto(); });
-resetBtn.addEventListener('click', ()=>{ stopAuto(); resetState(); });
-
-/* ======= Init ======= */
-renderCode(0);
-buildTimeline();
-resetState();
-refreshUI();
-
+compute();
 </script>
+
 </body>
 </html>
-
 
